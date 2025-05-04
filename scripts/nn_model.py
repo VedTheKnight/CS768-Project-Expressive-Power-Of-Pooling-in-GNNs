@@ -7,13 +7,14 @@ from torch_geometric.nn import global_add_pool
 from torch_geometric.nn import TopKPooling, PANPooling, SAGPooling, ASAPooling, EdgePooling, graclus
 from torch_geometric.nn import dense_mincut_pool, dense_diff_pool, DMoNPooling
 from torch_geometric.nn.resolver import activation_resolver
-from torch_geometric.utils import to_dense_adj, to_dense_batch
+from torch_geometric.utils import to_dense_adj, to_dense_batch, dense_to_sparse
 
 from scripts.sum_pool import sum_pool
 from scripts.pooling.kmis.kmis_pool import KMISPooling
 from scripts.pooling.softpool.simple_softpool import SimpleSoftPool
 from scripts.pooling.gmt.gmt_pool import GMTPooling 
 from scripts.pooling.specpool.spec_pool import SpecPool
+from scripts.pooling.lcp.learnable_cluster_pool import LearnableClusterPool
 from scripts.pooling.rnd_sparse import RndSparse
 from scripts.utils import batched_negative_edges
 
@@ -85,6 +86,8 @@ class GIN_Pool_Net(torch.nn.Module):
             self.pool = GMTPooling(hidden_channels, num_heads=4, num_queries=num_pooled_nodes)
         elif pooling=='specpool':
             self.pool = SpecPool(hidden_channels,ratio=pool_ratio)
+        elif pooling == 'learnable-cluster':
+            self.pool = LearnableClusterPool(hidden_channels, pooled_nodes)
         else:
             assert pooling==None
         
@@ -169,6 +172,17 @@ class GIN_Pool_Net(torch.nn.Module):
             aux_loss = 0
             x = self.mlp(x)
             return F.log_softmax(x, dim=-1), aux_loss
+        elif self.pooling == 'learnable-cluster':
+            x, mask = to_dense_batch(x, batch)
+            adj = to_dense_adj(adj, batch)
+            x, adj, aux_loss = self.pool(x, adj, mask)
+            edge_index, _ = dense_to_sparse(adj)
+            edge_index = edge_index.long()  # <-- FIX: cast to int64
+            batch = torch.arange(x.size(0), device=x.device).repeat_interleave(x.size(1))  # rebuild batch
+            x = x.view(-1, x.size(-1))  # flatten back to [N', F]
+            adj = edge_index  # <-- reassign so rest of the model continues using int64 edge_index
+
+
         elif self.pooling in ['graclus', 'comp-graclus']:
             data.x = x    
             if self.pooling == 'graclus':
