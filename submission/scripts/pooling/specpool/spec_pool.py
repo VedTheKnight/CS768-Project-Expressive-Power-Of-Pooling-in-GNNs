@@ -43,8 +43,6 @@ class SpecPool(nn.Module):
             # Project node features to spectral space
             x_spec = Uk.T @ xi  # [k, F]
 
-            # Optionally, you could use learnable pooling here
-
             pooled_x.append(x_spec)
             pooled_adj.append(torch.eye(k, device=device))  # assume fully connected in spectral space
             pooled_batch.append(torch.full((k,), i, device=device, dtype=torch.long))

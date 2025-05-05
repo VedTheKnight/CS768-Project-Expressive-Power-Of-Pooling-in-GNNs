@@ -23,7 +23,6 @@ class SimpleSoftPool(nn.Module):
         # Pooled adjacency: A' = SᵗAS
         adj_pool = torch.matmul(S.transpose(1, 2), torch.matmul(adj, S))  # [B, K, K]
 
-        # Optional: encourage entropy in assignment (can regularize)
         entropy = (-S * torch.log(S + 1e-10)).sum(dim=-1)  # [B, N]
         if mask is not None:
             entropy = (entropy * mask).sum() / mask.sum()

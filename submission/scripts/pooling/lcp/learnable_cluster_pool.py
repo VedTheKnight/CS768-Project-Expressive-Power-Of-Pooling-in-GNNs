@@ -32,7 +32,7 @@ class LearnableClusterPool(nn.Module):
         # Cluster-wise adjacency aggregation
         adj_pooled = torch.matmul(S.transpose(1, 2), torch.matmul(adj, S))  # (B, K, K)
 
-        # Optional regularization loss on assignment
+        # Regularization loss on assignment
         aux_loss = self.regularization_loss(S, mask)
 
         return x_pooled, adj_pooled, aux_loss
