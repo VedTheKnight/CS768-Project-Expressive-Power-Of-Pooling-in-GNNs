@@ -17,25 +17,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def plot_metric(df, x, y, title, xlabel, ylabel, filename):
+    import seaborn as sns
     plt.figure(figsize=(10, 6))
     df = df.copy()
     df[x] = pd.to_numeric(df[x], errors='coerce')
     df[y] = pd.to_numeric(df[y], errors='coerce')
     df = df.dropna(subset=[x, y, 'pooling'])
 
-    for pooling_method, group in df.groupby('pooling'):
-        sorted_group = group.sort_values(by=x)
-        plt.plot(
-            sorted_group[x].values, 
-            sorted_group[y].values, 
-            marker='o', 
-            label=pooling_method
-        )
+    sns.barplot(data=df, x=x, y=y, hue='pooling', edgecolor='black')
 
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.grid(True)
+    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
     plt.legend(title='Pooling')
     plt.tight_layout()
     plt.savefig(filename)
