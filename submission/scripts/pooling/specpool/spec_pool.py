@@ -24,11 +24,11 @@ class SpecPool(nn.Module):
         pooled_batch = []
 
         for i in range(B):
-            xi = dense_x[i, mask[i]]
-            Ai = dense_adj[i, :xi.size(0), :xi.size(0)]
+            xi = dense_x[i, mask[i]] # selects the i-th graphs node features
+            Ai = dense_adj[i, :xi.size(0), :xi.size(0)] # adjacency matrix of the ith graph
 
             # Compute normalized Laplacian: L = I - D^{-1/2} A D^{-1/2}
-            Di = torch.diag(Ai.sum(dim=-1))
+            Di = torch.diag(Ai.sum(dim=-1)) # sums across rows to get the degree matrix as a diagonal matrix
             D_inv_sqrt = torch.pow(Di, -0.5)
             D_inv_sqrt[torch.isinf(D_inv_sqrt)] = 0
             L = torch.eye(xi.size(0), device=device) - D_inv_sqrt @ Ai @ D_inv_sqrt
@@ -44,12 +44,12 @@ class SpecPool(nn.Module):
             x_spec = Uk.T @ xi  # [k, F]
 
             pooled_x.append(x_spec)
-            pooled_adj.append(torch.eye(k, device=device))  # assume fully connected in spectral space
-            pooled_batch.append(torch.full((k,), i, device=device, dtype=torch.long))
+            pooled_adj.append(torch.eye(k, device=device))  # assume no graph structure in the spectral space
+            pooled_batch.append(torch.full((k,), i, device=device, dtype=torch.long)) # tells us batch each node is mapped to
 
         # Concatenate batches
-        x_out = torch.cat(pooled_x, dim=0)  # [sum_k, F]
-        adj_out, _ = dense_to_sparse(torch.block_diag(*pooled_adj))
-        batch_out = torch.cat(pooled_batch, dim=0)
+        x_out = torch.cat(pooled_x, dim=0)  # [sum_k, F] - gives the pooled feature node matrix
+        adj_out, _ = dense_to_sparse(torch.block_diag(*pooled_adj)) # this gives the pooled edge index format used by pytorch geometric
+        batch_out = torch.cat(pooled_batch, dim=0) # tells pytorch geometric which graph each pooled node belongs to
 
         return x_out, adj_out, batch_out
