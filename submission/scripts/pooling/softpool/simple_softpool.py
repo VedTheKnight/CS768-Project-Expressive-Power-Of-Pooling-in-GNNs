@@ -17,10 +17,10 @@ class SimpleSoftPool(nn.Module):
         # Learn soft assignments
         S = F.softmax(self.assign_mlp(x), dim=-1)  # [B, N, K]
 
-        # Pooled node features: X' = SᵗX
+        # Pooled node features: X' = S.TX
         x_pool = torch.matmul(S.transpose(1, 2), x)  # [B, K, F]
 
-        # Pooled adjacency: A' = SᵗAS
+        # Pooled adjacency: A' = S.TAS
         adj_pool = torch.matmul(S.transpose(1, 2), torch.matmul(adj, S))  # [B, K, K]
 
         entropy = (-S * torch.log(S + 1e-10)).sum(dim=-1)  # [B, N]
