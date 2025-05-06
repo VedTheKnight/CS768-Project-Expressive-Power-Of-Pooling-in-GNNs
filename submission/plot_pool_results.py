@@ -4,9 +4,9 @@ import seaborn as sns
 import numpy as np
 
 # Load the CSV
-df = pd.read_csv('experiment_results_partial_sweep.csv')  # Replace with your actual filename
+df = pd.read_csv('experiment_results_partial_sweep.csv')  
 
-# Optional: average over repeats
+# average over repeats
 df_grouped = df.groupby(['pooling', 'pool_ratio', 'num_layers_pre', 'num_layers_post'], as_index=False).agg({
     'test_acc': 'mean',
     'time_sec': 'mean'
