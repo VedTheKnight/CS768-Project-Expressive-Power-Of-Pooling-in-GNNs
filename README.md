@@ -38,7 +38,7 @@ pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -
 ## Structure 
 
 1. The directory `submissions/scripts/pooling` contains all the pooling methods we have implemented
-2. `submission/nn_model.py` is the file that defines teh entire model architecture, incorporating the GIN and Pooling layers
+2. `submission/nn_model.py` is the file that defines the entire model architecture, incorporating the GIN and Pooling layers
 3. `submission/run_pool_experiments.py` and `submission/plot_pool_results.py` contains the code to run the experiments for the results displayed in section 5 of the report
 4. `submission/main.py` is the file to test out each individual pooling method by itself
 5. `submission/data` contains the EXPWL1 dataset
